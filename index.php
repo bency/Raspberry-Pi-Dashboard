@@ -4,6 +4,7 @@ error_reporting (E_ALL);
 ini_set ('display_errors', 'On');
 $auth=(isset($_SESSION["rpidbauth"])) ? true : false;
 
+require "backend/library.php";
 require "backend/Config.php";
 $config = new Config;
 $config->load("local.config", "defaults.php");
@@ -31,6 +32,8 @@ $passVal = ($config->get("general.pass")!=='63a9f0ea7bb98050796b649e85481845') ?
 <meta name="msapplication-TileImage" content="rpidb_ico/mstile-144x144.png?v=PYAg5Ko93z">
 <meta name="msapplication-config" content="rpidb_ico/browserconfig.xml?v=PYAg5Ko93z">
 <meta name="theme-color" content="#b91d47">
+<meta name="description" content="Web page replication of GPIO status" />
+<meta name="author" content="Ben Shorey ©2016 http://www.instructables.com/member/BenS226/" />
 
 <link rel="stylesheet" href="css/bootstrap-4.6.0.min.css">
 <link rel="stylesheet" href="css/bootstrap-icons.css?v=1.4.0">
@@ -38,54 +41,9 @@ $passVal = ($config->get("general.pass")!=='63a9f0ea7bb98050796b649e85481845') ?
 <link rel="stylesheet" href="css/mdtoast.min.css?v=2.0.2">
 
 <title>RPi Dashboard</title>
-
-<style>
-/* rubik-300 - latin */
-@font-face {
-  font-family: 'Rubik';
-  font-style: normal;
-  font-weight: 300;
-  src: url('fonts/rubik-v12-latin-300.eot'); /* IE9 Compat Modes */
-  src: local(''),
-    url('fonts/rubik-v12-latin-300.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-    url('fonts/rubik-v12-latin-300.woff2') format('woff2'), /* Super Modern Browsers */
-    url('fonts/rubik-v12-latin-300.woff') format('woff'), /* Modern Browsers */
-    url('fonts/rubik-v12-latin-300.ttf') format('truetype'), /* Safari, Android, iOS */
-    url('fonts/rubik-v12-latin-300.svg#Rubik') format('svg'); /* Legacy iOS */
-}
-body, .mdtoast{
-  font-family: 'Rubik', sans-serif;
-}
-.hidden{
-  display: none;
-}
-@media screen and (max-width: 530px) {
-  #notf {
-    display: block;
-  }
-  #dot{
-    display:none;
-  }
-}
-.preload-screen {
-  position: fixed;
-  left: 0px;
-  top: 0px;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-  background: url(img/load.gif) center no-repeat #fff;
-}
-.doughnut-chart-container {
-  height: 360px;
-  width: 360px;
-  float: left;
-}
-</style>
-
 <?php
 if($auth){
-  $upt=new DateTime(shell_exec('uptime -s'));
+  $upt = new DateTime(shell_exec('uptime -s'));
   $uptstr = $upt->format('d.m.Y H:i:s');
   // Disk space
   $df = disk_free_space("/");
@@ -104,8 +62,10 @@ if($auth){
   $p = $df / $ds * 100;
   //
 
-  $spannung=substr(exec("vcgencmd measure_volts core"),5);
-  if(strpos($spannung,"failed")!==false) $spannung=$spannung."<div class='alert alert-danger' role='alert'>Reading of core voltage failed. Please run<br><kbd>sudo usermod -aG video www-data</kbd><br>in a terminal to solve this problem.</div>";
+  $spannung = substr(exec("sudo /usr/bin/vcgencmd measure_volts core"), 5);
+  if(strpos($spannung, "failed") !== false) {
+      $spannung = $spannung . "<div class='alert alert-danger' role='alert'>Reading of core voltage failed. Please run<br><kbd>sudo usermod -aG video www-data</kbd><br>in a terminal to solve this problem.</div>";
+  }
 }
 ?>
 
@@ -156,6 +116,7 @@ if($auth){
         <div class="card-header border-primary text-primary"><i class="bi bi-command"></i>&nbsp;System</div>
         <div class="card-body">
           <button type="button" data-toggle="modal" data-target="#exampleModalCenter" class="btn btn-outline-primary mt-1"><i class="bi bi-power"></i>&nbsp;Power</button>&nbsp;
+          <button type="button" class="btn btn-outline-primary mt-1"><i class="bi bi-lock"></i>&nbsp;Door</button>&nbsp;
           <button type="button" onclick="logout()" class="btn btn-outline-warning mt-1"><i class="bi bi-arrow-right-square"></i>&nbsp;Logout</button>
         </div>
       </div>
@@ -300,6 +261,81 @@ if($auth){
         </div>
       </div>
     </div>
+  </div>
+  <hr>
+  <div class="row">
+    <div class="col-sm-12 pt-1 pt-md-0">
+      <div class="card text-center border-info">
+        <div class="card-header">Pin status</div>
+        <div class="card-body">
+        <table class="table" id="gpioTable" style="width:100%">
+        <td>BCM#</td>
+        <td>wPi#</td>
+        <td>Name</td>
+        <td>Mode</td>
+        <td>Value</td>
+
+        <td colspan=2>Phys#</td>
+
+        <td>Value</td>
+        <td>Mode</td>
+        <td>Name</td>
+        <td>wPi#</td>
+        <td>BCM#</td>
+        <?php
+            for ($i = 0; $i < 40; $i+=2) { ?>
+            <tr>
+                <?php
+                // for each physical pin look up name and equivalent BCM and wPi number and create table
+                // and add in buttons to control the pin values and modes
+                // left column "a"
+                // formats table to mimic table given by "gpio readall" command but could be adjusted to give any format
+
+                $a_pin_name = $pinInfo[$i][0];
+                $a_pin_wPi = $pinInfo[$i][1];
+                $a_pin_BCM = $pinInfo[$i][2];
+
+
+                if ($a_pin_BCM == "") { ?>
+                <td colspan=5><?php echo $a_pin_name ?></td>
+                <td><?php echo $i + 1 ?></td>
+                <?php } else { ?>
+                <td><?php echo $a_pin_BCM  ?></td>
+                <td><?php echo $a_pin_wPi  ?></td>
+                <td><?php echo $a_pin_name ?></td>
+                <td><input type=button onclick='change_pin_mode(<?php echo $a_pin_BCM ?>, 0)' value='' id='mode<?php echo $a_pin_BCM; ?>'></td>
+                <td><input type=button onclick='change_pin_value(<?php echo $a_pin_BCM ?>, 0)' value='' id='value<?php echo $a_pin_BCM; ?>'></td>
+                <td><?php echo $i + 1 ?></td>
+                <?php }
+                // right column "b"
+                $b_pin_name = $pinInfo[$i+1][0];
+                $b_pin_wPi = $pinInfo[$i+1][1];
+                $b_pin_BCM = $pinInfo[$i+1][2];
+                if ($b_pin_BCM == "") { ?>
+                <td><?php echo $i+2 ?></td>
+                <td colspan="5"><?php echo $b_pin_name ?></td>
+                <?php } else { ?>
+                <td><?php echo $i+2 ?></td>
+                <td><input type=button onclick='change_pin_value(<?php echo $b_pin_BCM ?>, 0)' value='' id='value<?php echo $b_pin_BCM; ?>'></td>
+                <td><input type=button onclick='change_pin_mode(<?php echo $b_pin_BCM ?>, 0)' value='' id='mode<?php echo $b_pin_BCM; ?>'></td>
+                <td><?php echo $b_pin_name ?></td>
+                <td><?php echo $b_pin_wPi  ?></td>
+                <td><?php echo $b_pin_BCM  ?></td>
+                <?php } ?>
+            <tr>
+            <?php } ?>
+
+        </table>
+        <table class="table">
+            <tr>
+                <td nowrap><button type="button" onclick="get_status()" id="update_button">Update</button></td>
+                <td nowrap><input type="checkbox" onclick="toggle_update()" id="update_checkbox">Auto Update</input></td>
+                <td width="80%"><div id="workspace" style="text-align: center;"></div></td>
+            </tr>
+        </table>
+      </div>
+      </div>
+      </div>
   </div>
 
 <?php
@@ -624,6 +660,7 @@ var chart2 = new Chart(ctx2, {
 }
 ?>
 </script>
+<script src="js/script.js"></script><!-- javascript file has to go here otherwise initial update script wont work -->
 
 </body>
 </html>

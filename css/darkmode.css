@@ -3,7 +3,7 @@ body, div.bg-light {
   background-color: #24292e!important;
 }
 
-footer, .card, .modal-header, .modal-body, .modal-footer, .close, #preload {
+footer, .card, .modal-header, .modal-body, .modal-footer, .close, #preload, .table {
   background-color: #2f363d!important;
   color: #fff!important;
 }

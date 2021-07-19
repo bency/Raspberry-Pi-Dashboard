@@ -113,7 +113,9 @@ function get_status() {
 	var data = 0;
 	// start timer to see how long process
 	t1 = (new Date()).getTime();
-	document.getElementById("workspace").innerHTML = "Updating...";
+	if (document.getElementById("workspace")) {
+        document.getElementById("workspace").innerHTML = "Updating...";
+    }
 		//this is the http request to get full status
 		var request = new XMLHttpRequest();
 
@@ -151,11 +153,13 @@ function get_status() {
 					// end timer
 					t2 = (new Date()).getTime();
 					// display how long request took
-					document.getElementById("workspace").innerHTML = "Done in " + (t2 - t1) + " milliseconds";	
+                    if (document.getElementById("workspace")) {
+                        document.getElementById("workspace").innerHTML = "Done in " + (t2 - t1) + " milliseconds";	
+                    }
 				}
 				request = null;
 
-				if (document.getElementById("update_checkbox").checked) {
+				if (document.getElementById("update_checkbox") && document.getElementById("update_checkbox").checked) {
 					// if auto update check box is checked, clear existing timer and start a new one
 					window.clearTimeout(timerId);
 					timerId = window.setTimeout(get_status, 500);
@@ -165,14 +169,16 @@ function get_status() {
 			else if (request.readyState == 4 && request.status == 500) {
 				//alert ("server error");
 				dElementById("mode" + n);
-					if (mode_button != null) ocument.getElementById("workspace").innerHTML = "Server error (500 status)";	
+					if (mode_button != null && document.getElementById("workspace")) ocument.getElementById("workspace").innerHTML = "Server error (500 status)";	
 
 				return ("fail");
 			}
 			//else 
 			else if (request.readyState == 4 && request.status != 200 && request.status != 500 ) { 
 				//alert ("Something went wrong!");
-				document.getElementById("workspace").innerHTML = "General error";	
+                if (document.getElementById("workspace")) {
+                    document.getElementById("workspace").innerHTML = "General error";	
+                }
 				return ("fail");
 			}
 		}	

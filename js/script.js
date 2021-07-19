@@ -20,6 +20,14 @@ function toggle_update() {
 	}
 }
 
+function openDoor() {
+	var request = new XMLHttpRequest();
+	request.open("POST" , "open-door.php", true);
+	request.send();
+}
+
+document.getElementById('open-door').addEventListener('click', openDoor);
+
 function change_pin_value (pin, value) {
 	console.log("Pin: "+ pin+ " value: " + value);
 	var data = 0;

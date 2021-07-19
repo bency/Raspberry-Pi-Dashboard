@@ -116,7 +116,7 @@ if($auth){
         <div class="card-header border-primary text-primary"><i class="bi bi-command"></i>&nbsp;System</div>
         <div class="card-body">
           <button type="button" data-toggle="modal" data-target="#exampleModalCenter" class="btn btn-outline-primary mt-1"><i class="bi bi-power"></i>&nbsp;Power</button>&nbsp;
-          <button type="button" class="btn btn-outline-primary mt-1"><i class="bi bi-lock"></i>&nbsp;Door</button>&nbsp;
+          <button type="button" class="btn btn-outline-primary mt-1" id="open-door"><i class="bi bi-lock"></i>&nbsp;Door</button>&nbsp;
           <button type="button" onclick="logout()" class="btn btn-outline-warning mt-1"><i class="bi bi-arrow-right-square"></i>&nbsp;Logout</button>
         </div>
       </div>

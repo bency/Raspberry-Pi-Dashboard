@@ -15,11 +15,11 @@ $config->load("../local.config", "../defaults.php");
 $uptime = shell_exec("cat /proc/uptime");
 $uptime = explode(" ", $uptime);
 $uptime = $uptime[0];
-$y = floor($uptime / 60 / 60 / 24 / 365);
-$d = floor($uptime / 60 / 60 / 24) % 365;
-$h = floor(($uptime / 3600) % 24);
-$m = floor(($uptime / 60) % 60);
-$s = $uptime % 60;
+$y = floor((int) ($uptime / 60 / 60 / 24 / 365));
+$d = floor((int) ($uptime / 60 / 60 / 24)) % 365;
+$h = floor((int) ($uptime / 3600) % 24);
+$m = floor((int) ($uptime / 60) % 60);
+$s = (int) $uptime % 60;
 $uptime_string = '';
 if ($y > 0) {
   $yw = $y > 1 ? ' years ' : ' year ';
